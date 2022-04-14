@@ -59,13 +59,12 @@ public class SearchResult {
         save.addClickListener(event -> {
             if(resultGrid.isEnabled()) {
                 Notification.show("Check preferred flight before save");
-                reset.setEnabled(false);
-                confirmDialog.setEnabled(false);
+
             } else {
                 reset.setEnabled(true);
                 confirmDialog.setEnabled(true);
-                confirmDialog.getRentACar().click();
                 Notification.show("Flight saved");
+                confirmDialog.getRentACar().click();
             }
         });
 
@@ -98,7 +97,15 @@ public class SearchResult {
             setGridItems(sortResultComboBox.getValue().toString(), resultGrid);
 
             List<LegsDto> legsDtoList = new ArrayList<>();
-            legsDtoList.add(LegsDto.builder().build());
+            legsDtoList.add(LegsDto.builder()
+                    .durationInMinutes(0)
+                    .origin(null)
+                    .destination(null)
+                    .stopCount(0)
+                    .departure(null)
+                    .arrival(null)
+                    .segmentsDto(new ArrayList<>())
+                    .build());
             setTransfersGrid(Option.builder().connections(new ArrayList<>(legsDtoList)).build(), transfersGrid);
         });
 
@@ -142,6 +149,10 @@ public class SearchResult {
                }
             });
         }
+    }
+
+    public Option getOption() {
+        return option;
     }
 
     public void setOption(Option option) {

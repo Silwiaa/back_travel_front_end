@@ -17,14 +17,11 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class LegsDto {
 
-    @JsonProperty("id")
-    private String id;
-
     @JsonProperty("durationInMinutes")
     private int durationInMinutes;
 
     @JsonProperty("origin")
-        private LocationDto origin;
+    private LocationDto origin;
 
     @JsonProperty("destination")
     private LocationDto destination;
