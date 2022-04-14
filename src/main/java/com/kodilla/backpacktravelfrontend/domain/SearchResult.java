@@ -18,6 +18,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class SearchResult {
@@ -33,6 +34,7 @@ public class SearchResult {
 
     private BestFlightDto bestFlightDto;
     private Option option;
+    private List<Option> optionList;
     private ConfirmDialog confirmDialog = new ConfirmDialog();
     private SkyscannerMapper skyscannerMapper = new SkyscannerMapper();
 
@@ -63,14 +65,19 @@ public class SearchResult {
             } else {
                 reset.setEnabled(true);
                 confirmDialog.setEnabled(true);
+                setOption(optionList.stream().filter(f -> f.getEnabled().equals(true)).collect(Collectors.toList()).get(0));
                 Notification.show("Flight saved");
                 confirmDialog.getRentACar().click();
+                save.setEnabled(false);
             }
         });
 
         reset.addClickListener(event -> {
             option.setEnabled(false);
+            resultGrid.setEnabled(true);
             reset.setEnabled(false);
+            confirmDialog.setEnabled(false);
+            save.setEnabled(true);
         });
 
         resultGridHeader.add(filtrTitle, sortResultComboBox, save, reset, confirmDialog);
@@ -94,27 +101,30 @@ public class SearchResult {
         sortResultComboBox.addValueChangeListener(event -> {
             resultGrid.asSingleSelect().clear();
             transfersGrid.asSingleSelect().clear();
+            mainLayout.remove(transferHeader);
+            mainLayout.remove(transfersGrid);
             setGridItems(sortResultComboBox.getValue().toString(), resultGrid);
-
-            List<LegsDto> legsDtoList = new ArrayList<>();
-            legsDtoList.add(LegsDto.builder()
-                    .durationInMinutes(0)
-                    .origin(null)
-                    .destination(null)
-                    .stopCount(0)
-                    .departure(null)
-                    .arrival(null)
-                    .segmentsDto(new ArrayList<>())
-                    .build());
-            setTransfersGrid(Option.builder().connections(new ArrayList<>(legsDtoList)).build(), transfersGrid);
         });
 
         resultGrid.addItemClickListener(event -> {
+            mainLayout.remove(transferHeader);
+            mainLayout.remove(transfersGrid);
             mainLayout.add(transferHeader);
-            transfersGrid.asSingleSelect().clear();
-            setTransfersGrid(event.getItem(), transfersGrid);
             setOption(event.getItem());
+            sortTransferType.setValue(flightType1);
+            setTransfersGrid(event.getItem(), transfersGrid);
             mainLayout.add(transfersGrid);
+        });
+
+        sortTransferType.addValueChangeListener(event -> {
+            if(sortTransferType.equals(flightType1)) {
+                transfersGrid.setItems(skyscannerMapper.mapToTransferList(option.getConnections().get(0)));
+
+            } else {
+                if (option.getConnections().size() > 1) {
+                    transfersGrid.setItems(skyscannerMapper.mapToTransferList(option.getConnections().get(1)));
+                }
+            }
         });
     }
 
@@ -128,9 +138,10 @@ public class SearchResult {
                 .flatMap(m -> m.getItems().stream())
                 .collect(Collectors.toList());
 
-        grid.setColumns("type", "price", "arrivalAtDestination", "transfersDuringDestinationFlight", "comeBackArrival", "transfersDuringComeBackFlight");
+        grid.setColumns("type", "price", "arrival", "duration", "transfers", "comeBack", "durationComeBack", "transfersComeBack");
         grid.addColumn(CheckboxRenderer.of(Option::getEnabled, Option::setEnabled));
-        grid.setItems(skyscannerMapper.mapToOptionList(itemDtoList, sortComboBoxValue));
+        optionList = skyscannerMapper.mapToOptionList(itemDtoList, sortComboBoxValue);
+        grid.setItems(optionList);
     }
 
     public void setTransfersGrid(Option option, Grid<Transfer> grid) {
@@ -139,15 +150,6 @@ public class SearchResult {
 
         if(option.getConnections().size() > 1) {
             sortTransferType.setEnabled(true);
-
-            sortTransferType.addValueChangeListener(event -> {
-               if(sortTransferType.equals("Departure flight")) {
-                   grid.setItems(skyscannerMapper.mapToTransferList(option.getConnections().get(0)));
-
-               } else {
-                   grid.setItems(skyscannerMapper.mapToTransferList(option.getConnections().get(1)));
-               }
-            });
         }
     }
 

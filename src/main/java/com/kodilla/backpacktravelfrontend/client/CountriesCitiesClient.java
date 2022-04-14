@@ -23,7 +23,6 @@ public class CountriesCitiesClient {
 
         try {
             CountryDto response = restTemplate.getForObject(url, CountryDto.class);
-            System.out.println("Odpowiedz: " + response);
             return response;
 
         } catch (RestClientException e) {
@@ -40,7 +39,6 @@ public class CountriesCitiesClient {
 
         try {
             CityResponseDto response = restTemplate.getForObject(url, CityResponseDto.class);
-            System.out.println("Odpowiedz: " + response);
             return response;
 
         } catch (RestClientException e) {

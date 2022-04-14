@@ -7,8 +7,10 @@ import com.kodilla.backpacktravelfrontend.dto.flightResponseDto.BestFlightDto;
 import com.kodilla.backpacktravelfrontend.dto.flightResponseDto.ItineraryDto;
 import com.kodilla.backpacktravelfrontend.dto.locationRentACarDto.LocationRentACarDto;
 import com.kodilla.backpacktravelfrontend.dto.rentACarResponseDto.RentACarResponseDto;
+import com.vaadin.flow.component.notification.Notification;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,13 +43,20 @@ public class SkyscannerService {
     }
 
     public void setBestFlightDto(SearchCriteriaDto searchCriteriaDto) {
-        BestFlightDto bestFlightDto = skyscannerClient.getBestFlights(searchCriteriaDto);
+        this.bestFlightDto = BestFlightDto.builder().itineraries(ItineraryDto.builder().optionsDto(new ArrayList<>()).build()).build();
+        if(!validateSearchCriteriaDto(searchCriteriaDto)) {
 
-        if(bestFlightDto.getItineraries() == null || Optional.ofNullable(bestFlightDto.getItineraries().getOptionsDto()).isEmpty()) {
-            this.bestFlightDto = BestFlightDto.builder().itineraries(ItineraryDto.builder().optionsDto(new ArrayList<>()).build()).build();
+            return;
 
         } else {
-            this.bestFlightDto = bestFlightDto;
+            BestFlightDto bestFlightDto = skyscannerClient.getBestFlights(searchCriteriaDto);
+
+            if (bestFlightDto.getItineraries() == null || Optional.ofNullable(bestFlightDto.getItineraries().getOptionsDto()).isEmpty()) {
+                this.bestFlightDto = BestFlightDto.builder().itineraries(ItineraryDto.builder().optionsDto(new ArrayList<>()).build()).build();
+
+            } else {
+                this.bestFlightDto = bestFlightDto;
+            }
         }
     }
 
@@ -66,4 +75,18 @@ public class SkyscannerService {
     public void setRentACarResponseDto(RentACarParameterDto rentACarParameterDto) {
         this.rentACarResponseDto = skyscannerClient.getRentACar(rentACarParameterDto);
     }
+
+    private boolean validateSearchCriteriaDto(SearchCriteriaDto searchCriteriaDto) {
+        if(!Optional.ofNullable(searchCriteriaDto.getOriginCountry()).isPresent() ||
+                !Optional.ofNullable(searchCriteriaDto.getOriginAirport()).isPresent() ||
+                !Optional.ofNullable(searchCriteriaDto.getDepartureDate()).isPresent() ||
+                !Optional.ofNullable(searchCriteriaDto.getDestinationCountry()).isPresent() ||
+                !Optional.ofNullable(searchCriteriaDto.getDestinationAirport()).isPresent() ||
+                !Optional.ofNullable(searchCriteriaDto.getReturnDate()).isPresent()) {
+            Notification.show("All firlds needs to be filled in");
+            return false;
+        } else {
+            return true;
+        }
+    };
 }

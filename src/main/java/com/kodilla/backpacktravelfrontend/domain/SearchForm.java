@@ -69,6 +69,7 @@ public class SearchForm extends FormLayout {
         originAirport.getStyle().set("--vaadin-combo-box-overlay-width", "350px");
 
         originCountry.addValueChangeListener(event -> {
+
             originAirport.setItems(AirportDto.builder().build());
         });
 
@@ -90,6 +91,13 @@ public class SearchForm extends FormLayout {
         departureDate.setPlaceholder("e.g. 2022-08-06");
         departureDate.setMin(now);
         departureDate.setMax(now.plusYears(100));
+
+        departureDate.addValueChangeListener(event -> {
+            if(way.getValue().equals("With return flight")) {
+                returnDate.setMin(departureDate.getValue());
+                returnDate.setEnabled(true);
+            }
+        });
         departure.add(originCountry, originAirport, departureDate);
 
         HorizontalLayout arrival = new HorizontalLayout();
@@ -117,8 +125,8 @@ public class SearchForm extends FormLayout {
         });
 
         returnDate.setPlaceholder("e.g. 2022-08-20");
-        returnDate.setMin(now);
-        returnDate.setMax(now.plusYears(100));
+        returnDate.setEnabled(false);
+        LocalDate.now(ZoneId.systemDefault());
         arrival.add(destinationCountry, destinationAirport, returnDate);
 
         HorizontalLayout criteria = new HorizontalLayout();

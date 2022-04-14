@@ -18,18 +18,21 @@ public class SkyscannerMapper {
         Option option = Option.builder()
                 .enabled(false)
                 .type(null)
-                .arrivalAtDestination(itemDto.getLegs().get(0).getArrival())
-                .transfersDuringDestinationFlight(itemDto.getLegs().get(0).getStopCount())
-                .comeBackArrival(null)
-                .transfersDuringComeBackFlight(0)
                 .price(itemDto.getPrice().get("formatted"))
                 .notFormattedPrice(itemDto.getPrice().get("raw"))
+                .arrival(itemDto.getLegs().get(0).getArrival())
+                .duration(LocalTime.of(itemDto.getLegs().get(0).getDurationInMinutes() / 60, itemDto.getLegs().get(0).getDurationInMinutes() % 60))
+                .transfers(itemDto.getLegs().get(0).getStopCount())
+                .comeBack(null)
+                .durationComeBack(null)
+                .transfersComeBack(0)
                 .connections(new ArrayList<>(itemDto.getLegs()))
                 .build();
 
         if(itemDto.getLegs().size() > 1) {
-            option.setComeBackArrival(itemDto.getLegs().get(1).getArrival());
-            option.setTransfersDuringComeBackFlight(itemDto.getLegs().get(1).getStopCount());
+            option.setComeBack(itemDto.getLegs().get(1).getArrival());
+            option.setTransfersComeBack(itemDto.getLegs().get(1).getStopCount());
+            option.setDurationComeBack(LocalTime.of(itemDto.getLegs().get(1).getDurationInMinutes() / 60, itemDto.getLegs().get(1).getDurationInMinutes() % 60));
         }
 
         return option;
